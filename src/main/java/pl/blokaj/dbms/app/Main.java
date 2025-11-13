@@ -19,6 +19,7 @@ public class Main {
 
         Table table = ProcessCSV.processCSV(resourcePath + fileName, 8192, 3, 2);
 
+        System.out.println("Metrics on raw data from CSV");
         for (int i = 0; i < table.getColumns().size(); i++) {
             System.out.println("Column " + (i + 1) + " metric: " + table.getColumns().get(i).calculateMetric());
         }
@@ -26,6 +27,7 @@ public class Main {
         String serializedName = "example.dbms";
         FileSerializer.toFile(resourcePath + serializedName, table);
 
+        System.out.println("Metrics on serialized data from DBMS");
         try (BufferedInputStream fis = new BufferedInputStream(new FileInputStream(resourcePath + serializedName));) {
             Table deserialized = FileDeserializer.deserializeFile(fis);
             for (int i = 0; i < deserialized.getColumns().size(); i++) {
