@@ -4,6 +4,9 @@ import jdk.incubator.vector.LongVector;
 import jdk.incubator.vector.VectorOperators;
 import jdk.incubator.vector.VectorSpecies;
 
+/**
+ * Handles ZigZag encoding using SIMD operations
+ */
 public class ZigZag {
     private static final VectorSpecies<Long> SPECIES = LongVector.SPECIES_PREFERRED;
 

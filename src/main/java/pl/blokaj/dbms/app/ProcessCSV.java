@@ -3,12 +3,10 @@ package pl.blokaj.dbms.app;
 import pl.blokaj.dbms.Table.Table;
 import pl.blokaj.dbms.columntype.Int64Column;
 import pl.blokaj.dbms.columntype.VarcharColumn;
-import pl.blokaj.dbms.fileformat.serializer.FileSerializer;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 
 public class ProcessCSV {
@@ -113,29 +111,35 @@ public class ProcessCSV {
         }
     }
 
-    public static Table smol() throws IOException {
-        ArrayList<byte[]> entries1 = new ArrayList<>();
-        ArrayList<byte[]> entries2 = new ArrayList<>();
+    public static Table processCSV(String filePath, int size, int int64Columns, int varcharColumns) throws IOException {
+        try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
+            String line;
 
-        entries1.add(stringToBytes("smol123"));
-        entries2.add(stringToBytes("smol213"));
+            long[][] longs = new long[int64Columns][size];
+            ArrayList<byte[]>[] varchars = new ArrayList[varcharColumns];
+            for (int i = 0; i < varcharColumns; i++) {
+                varchars[i] = new ArrayList<>();
+            }
 
-        Table table = new Table();
-        table.addColumn(new VarcharColumn(entries1));
-        table.addColumn(new VarcharColumn(entries2));
-        return table;
-    }
+            for (int i = 0; i < size; i++) {
+                line = br.readLine();
+                String[] values = line.split(",");
+                for (int j = 0; j < int64Columns; j++) {
+                    longs[j][i] = Long.parseLong(values[j]);
+                }
+                for (int j = 0; j < varcharColumns; j++) {
+                    varchars[j].add(stringToBytes(values[j]));
+                }
+            }
 
-    public static void main(String[] args) throws IOException {
-        Table onlyInt = onlyInt();
-        FileSerializer.toFile("dat1.dbms", onlyInt);
-        Table onlyString = onlyString();
-        FileSerializer.toFile("onlyString.dbms", onlyString);
-        Table smol  = smol();
-        FileSerializer.toFile("smol.dbms", smol);
-        Table stringAndInt = stringAndInt();
-        FileSerializer.toFile("stringAndInt.dbms", stringAndInt);
-        Table  intAndString = intAndString();
-        FileSerializer.toFile("intAndString.dbms", intAndString);
+            Table table = new Table();
+            for (int i = 0; i < int64Columns; i++) {
+                table.addColumn(new Int64Column(longs[i]));
+            }
+            for (int i = 0; i < varcharColumns; i++) {
+                table.addColumn(new VarcharColumn(varchars[i]));
+            }
+            return table;
+        }
     }
 }

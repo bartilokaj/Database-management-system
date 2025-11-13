@@ -5,6 +5,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+/**
+ * Handles VLQ encoding for arrays and single longs
+ */
 public class VLQ {
     private static final int DATA_MASK = 0x7F; // 0111 1111
     private static final int CONTINUATION_BIT = 0x80;

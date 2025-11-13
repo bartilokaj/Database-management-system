@@ -1,9 +1,11 @@
 package pl.blokaj.dbms.fileformat.encoding;
 
 import jdk.incubator.vector.LongVector;
-import jdk.incubator.vector.VectorMask;
 import jdk.incubator.vector.VectorSpecies;
 
+/**
+ * Handles delta encoding using SIMD operations
+ */
 public class Delta {
     private static final VectorSpecies<Long> SPECIES = LongVector.SPECIES_PREFERRED;
 

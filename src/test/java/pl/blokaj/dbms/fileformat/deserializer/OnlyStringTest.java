@@ -16,7 +16,7 @@ public class OnlyStringTest {
     @Test
     public void onlyStringTest() throws IOException {
         Table originalTable = ProcessCSV.onlyString();
-        String filePath = "src/main/resources/smol.dbms";
+        String filePath = "src/main/resources/onlyString.dbms";
 
         BufferedInputStream bis = new BufferedInputStream(new FileInputStream(filePath));
         Table deserializedTable = FileDeserializer.deserializeFile(bis);

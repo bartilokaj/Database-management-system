@@ -2,6 +2,9 @@ package pl.blokaj.dbms.columntype;
 
 import java.util.HashMap;
 
+/**
+ * Maps bytes to Column classes, and vice versa
+ */
 public class ColumnDictionary {
     private static final HashMap<Byte, Class<? extends Column>> columnDict = new HashMap<Byte, Class<? extends Column>>();
     private static final HashMap<Class<? extends Column>, Byte> typeDict = new HashMap<>();

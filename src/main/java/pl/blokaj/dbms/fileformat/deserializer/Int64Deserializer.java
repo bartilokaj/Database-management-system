@@ -13,13 +13,15 @@ import static pl.blokaj.dbms.fileformat.encoding.VLQ.decodeVLQ;
 import static pl.blokaj.dbms.fileformat.encoding.Delta.decodeDelta;
 import static pl.blokaj.dbms.fileformat.encoding.ZigZag.decodeZigZag;
 
+/**
+ * Handles deserializing int64 column
+ */
 public class Int64Deserializer implements ColumnDeserializer<Int64Column> {
     private Int64Deserializer() {}
     public static final Int64Deserializer INSTANCE = new Int64Deserializer();
 
     @Override
     public Column deserialize(InputStream in) throws IOException {
-        System.out.println("Int start");
         Int64ColumnHeader header = new Int64ColumnHeader();
         header.setDataLength(VLQ.decodeSingleVLQ(in));
         return new Int64Column(decodeDelta(decodeZigZag(decodeVLQ(in, (int) header.getDataLength()))));

@@ -15,7 +15,6 @@ public class VarcharSerializer implements ColumnSerializer<VarcharColumn> {
     @Override
     public Boolean toFile(VarcharColumn column, OutputStream out) throws IOException {
         ArrayList<byte[]> entries = column.getEntries();
-
         long sum = 0;
         for (byte[] entry: entries) {
             sum += entry.length;
@@ -23,13 +22,9 @@ public class VarcharSerializer implements ColumnSerializer<VarcharColumn> {
 
         encodeSingleVLQ(entries.size(), out);
         encodeSingleVLQ(sum, out);
-
-        ZstdOutputStreamNoFinalizer output = new ZstdOutputStreamNoFinalizer(out);
-        output.setChecksum(false);
         for  (byte[] entry : entries) {
-            output.write(entry);
+            out.write(entry);
         }
-        output.closeWithoutClosingParentStream();
         return true;
     }
 }

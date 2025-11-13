@@ -31,12 +31,12 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.11.0</version>
                 <configuration>
-                    <source>22</source>
-                    <target>22</target>
+                    <source>25</source>
+                    <target>25</target>
                     <compilerArgs>
-                        <arg>--enable-preview</arg>
                         <arg>--add-modules</arg>
                         <arg>jdk.incubator.vector</arg>
+                        <arg>--enable-preview</arg>
                     </compilerArgs>
                 </configuration>
             </plugin>
@@ -47,6 +47,15 @@
                 <version>3.2.5</version>
                 <configuration>
                     <argLine>--enable-preview --add-modules jdk.incubator.vector</argLine>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.1.0</version>
+                <configuration>
+                    <mainClass>pl.blokaj.dbms.app.Main</mainClass>
+                    <executable>java</executable>
                 </configuration>
             </plugin>
         </plugins>

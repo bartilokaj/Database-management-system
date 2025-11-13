@@ -2,6 +2,7 @@ package pl.blokaj.dbms.fileformat.deserializer;
 
 import org.junit.jupiter.api.Test;
 import pl.blokaj.dbms.Table.Table;
+import pl.blokaj.dbms.app.GenerateCSV;
 import pl.blokaj.dbms.app.ProcessCSV;
 
 import java.io.BufferedInputStream;
@@ -15,8 +16,9 @@ public class IntAndStringTest {
 
     @Test
     public void IntAndStringTest() throws IOException {
-        Table originalTable = ProcessCSV.intAndString();
         String filePath = "src/main/resources/intAndString.dbms";
+        GenerateCSV.generateOnlyInt(8192);
+        Table originalTable = ProcessCSV.intAndString();
 
         BufferedInputStream bis = new BufferedInputStream(new FileInputStream(filePath));
         Table deserializedTable = FileDeserializer.deserializeFile(bis);

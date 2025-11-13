@@ -3,6 +3,9 @@ package pl.blokaj.dbms.fileformat.deserializer;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Maps bytes to deserializer instances
+ */
 public class DeserializerDictionary {
     private static final Map<Byte, ColumnDeserializer<?>> deserializerDictionary  = new HashMap<>();
 

@@ -7,7 +7,6 @@ import pl.blokaj.dbms.app.ProcessCSV;
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.Arrays;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 
@@ -16,7 +15,7 @@ public class OnlyIntTest {
     @Test
     public void OnlyIntTest() throws IOException {
         Table originalTable = ProcessCSV.onlyInt();
-        String filePath = "src/main/resources/dat1.dbms";
+        String filePath = "src/main/resources/onlyInt.dbms";
 
         BufferedInputStream bis = new BufferedInputStream(new FileInputStream(filePath));
         Table deserializedTable = FileDeserializer.deserializeFile(bis);
