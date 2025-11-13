@@ -1,15 +1,12 @@
 package pl.blokaj.dbms.fileformat.serializer;
 
-import pl.blokaj.dbms.columntype.CompressedInt64Column;
 import pl.blokaj.dbms.columntype.Int64Column;
 
-import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.Arrays;
 
 import static pl.blokaj.dbms.fileformat.encoding.Delta.encodeDelta;
+import static pl.blokaj.dbms.fileformat.encoding.VLQ.encodeSingleVLQ;
 import static pl.blokaj.dbms.fileformat.encoding.VLQ.encodeVLQ;
 import static pl.blokaj.dbms.fileformat.encoding.ZigZag.encodeZigZag;
 
@@ -18,14 +15,9 @@ public class Int64Serializer implements ColumnSerializer<Int64Column> {
     public static final Int64Serializer INSTANCE = new Int64Serializer();
 
     @Override
-    public CompressedInt64Column toMemory(Int64Column column) {
-        long[] data = column.getData();
-        return new CompressedInt64Column(encodeVLQ(encodeZigZag(encodeDelta(data))));
-    }
-
-    @Override
     public Boolean toFile(Int64Column column, OutputStream out) throws IOException {
         long[] data = column.getData();
+        encodeSingleVLQ(data.length, out);
         byte[] encodedData = encodeVLQ(encodeZigZag(encodeDelta(data)));
         out.write(encodedData);
         return true;

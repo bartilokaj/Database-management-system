@@ -3,6 +3,8 @@ package pl.blokaj.dbms.fileformat.encoding;
 import com.github.luben.zstd.Zstd;
 import org.junit.jupiter.api.Test;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Random;
 
@@ -16,7 +18,7 @@ import static pl.blokaj.dbms.fileformat.encoding.ZigZag.encodeZigZag;
 
 public class FullIntEncodingTest {
     @Test
-    public void testDeltaAndVLQ() {
+    public void testDeltaAndVLQ() throws IOException {
         long[] data = new long[8192];
         Random random = new Random();
         for (int i = 0; i < data.length; i++) {
@@ -24,11 +26,9 @@ public class FullIntEncodingTest {
         }
 
         byte[] encodedData = encodeVLQ(encodeZigZag(encodeDelta(data)));
-        byte[] compressedData = Zstd.compress(encodedData);
         int originalSize = encodedData.length;
 
-        byte[] decompressedData = Zstd.decompress(compressedData, originalSize);
-        long[] decodedData = decodeDelta(decodeZigZag(decodeVLQ(decompressedData, 8192)));
+        long[] decodedData = decodeDelta(decodeZigZag(decodeVLQ(new ByteArrayInputStream(encodedData), 8192)));
         assertArrayEquals(data, decodedData);
     }
 }

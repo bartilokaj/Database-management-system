@@ -4,13 +4,23 @@ import java.util.HashMap;
 
 public class ColumnDictionary {
     private static final HashMap<Byte, Class<? extends Column>> columnDict = new HashMap<Byte, Class<? extends Column>>();
+    private static final HashMap<Class<? extends Column>, Byte> typeDict = new HashMap<>();
 
     static {
         columnDict.put((byte)0, Int64Column.class);
         columnDict.put((byte)1, VarcharColumn.class);
     }
 
+    static {
+        typeDict.put((Int64Column.class), (byte)0);
+        typeDict.put((VarcharColumn.class), (byte)1);
+    }
+
     public static Class<? extends Column> getColumnClass(byte type) {
         return columnDict.get(type);
+    }
+
+    public static Byte getColumnType(Class<? extends Column> columnClass) {
+        return typeDict.get(columnClass);
     }
 }

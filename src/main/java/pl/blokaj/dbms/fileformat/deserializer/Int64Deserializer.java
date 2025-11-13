@@ -19,8 +19,9 @@ public class Int64Deserializer implements ColumnDeserializer<Int64Column> {
 
     @Override
     public Column deserialize(InputStream in) throws IOException {
+        System.out.println("Int start");
         Int64ColumnHeader header = new Int64ColumnHeader();
         header.setDataLength(VLQ.decodeSingleVLQ(in));
-        return new Int64Column(decodeZigZag(decodeVLQ(in, (int) header.getDataLength())));
+        return new Int64Column(decodeDelta(decodeZigZag(decodeVLQ(in, (int) header.getDataLength()))));
     }
 }

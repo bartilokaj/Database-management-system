@@ -2,6 +2,10 @@ package pl.blokaj.dbms.columntype;
 
 import pl.blokaj.dbms.fileformat.deserializer.ColumnDeserializer;
 import pl.blokaj.dbms.fileformat.deserializer.Int64Deserializer;
+import pl.blokaj.dbms.fileformat.serializer.Int64Serializer;
+
+import java.io.IOException;
+import java.io.OutputStream;
 
 public final class Int64Column extends Column {
     private final long[] data;
@@ -15,9 +19,7 @@ public final class Int64Column extends Column {
         return data;
     }
 
-
-    @Override
-    public ColumnDeserializer<? extends Column> getDeserializer() {
-        return Int64Deserializer.INSTANCE;
+    public void serialize(OutputStream stream) throws IOException {
+        Int64Serializer.INSTANCE.toFile(this, stream);
     }
 }

@@ -14,4 +14,8 @@ public class Table {
     public void addColumn(Column column) {
         columns.add(column);
     }
+
+    public ArrayList<Column> getColumns() {
+        return columns;
+    }
 }

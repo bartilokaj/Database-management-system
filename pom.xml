@@ -9,6 +9,8 @@
     <version>1.0-SNAPSHOT</version>
     <name>Database-management-system</name>
 
+
+
     <dependencies>
         <dependency>
             <groupId>com.github.luben</groupId>
@@ -22,30 +24,33 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-
     <build>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.1.2</version>
-                <configuration>
-                    <argLine>--add-modules jdk.incubator.vector</argLine>
-                    <includes>
-                        <include>**/*Test.java</include>
-                    </includes>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.11.0</version>
                 <configuration>
-                    <source>11</source>
-                    <target>11</target>
+                    <source>22</source>
+                    <target>22</target>
+                    <compilerArgs>
+                        <arg>--enable-preview</arg>
+                        <arg>--add-modules</arg>
+                        <arg>jdk.incubator.vector</arg>
+                    </compilerArgs>
                 </configuration>
             </plugin>
 
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.2.5</version>
+                <configuration>
+                    <argLine>--enable-preview --add-modules jdk.incubator.vector</argLine>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
+
 
 </project>
