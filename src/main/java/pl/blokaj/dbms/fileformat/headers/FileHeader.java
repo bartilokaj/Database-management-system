@@ -1,19 +1,17 @@
 package pl.blokaj.dbms.fileformat.headers;
 
-import pl.blokaj.dbms.columntype.Column;
-
 /**
  * Defines file header
  */
 public class FileHeader {
     // number of columns
-    long columnNumber;
+    long columnSize;
 
-    public long getColumnNumber() {
-        return columnNumber;
+    public long getColumnSize() {
+        return columnSize;
     }
 
-    public void setColumnNumber(long columnNumber) {
-        this.columnNumber = columnNumber;
+    public void setColumnSize(long columnNumber) {
+        this.columnSize = columnNumber;
     }
 }

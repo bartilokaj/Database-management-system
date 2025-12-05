@@ -34,7 +34,6 @@ public class VLQ {
 
     public static byte[] encodeVLQ(long[] column) throws RuntimeException {
         try {
-
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             for (long v : column) {
                 encodeSingleVLQ(v, out);

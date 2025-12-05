@@ -16,7 +16,7 @@ public class DeltaTest {
             data[i] = random.nextLong();
         }
 
-        long[] encodedData = Delta.encodeDelta(data);
+        long[] encodedData = Delta.encodeDelta(data, 0);
         long[] decodedData = Delta.decodeDelta(encodedData);
         assertArrayEquals(data, decodedData);
     }

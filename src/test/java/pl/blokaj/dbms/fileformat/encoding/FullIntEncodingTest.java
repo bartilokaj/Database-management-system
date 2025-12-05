@@ -23,7 +23,7 @@ public class FullIntEncodingTest {
             data[i] = random.nextLong();
         }
 
-        byte[] encodedData = encodeVLQ(encodeZigZag(encodeDelta(data)));
+        byte[] encodedData = encodeVLQ(encodeZigZag(encodeDelta(data, 0)));
         int originalSize = encodedData.length;
 
         long[] decodedData = decodeDelta(decodeZigZag(decodeVLQ(new ByteArrayInputStream(encodedData), 8192)));

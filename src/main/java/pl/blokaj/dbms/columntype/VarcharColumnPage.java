@@ -7,10 +7,10 @@ import java.io.OutputStream;
 import java.math.BigInteger;
 import java.util.ArrayList;
 
-public final class VarcharColumn extends Column {
+public final class VarcharColumnPage extends ColumnPage {
     private final ArrayList<byte[]> entries;
 
-    public VarcharColumn(ArrayList<byte[]> entries) {
+    public VarcharColumnPage(ArrayList<byte[]> entries) {
         this.entries = entries;
     }
 
@@ -34,5 +34,10 @@ public final class VarcharColumn extends Column {
             lengthSum = lengthSum.add(BigInteger.valueOf(entry.length));
         }
         return ("lengthSum: " + lengthSum);
+    }
+
+    @Override
+    public long getRowCount() {
+        return entries.size();
     }
 }

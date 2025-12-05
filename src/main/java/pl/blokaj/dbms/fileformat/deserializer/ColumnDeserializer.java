@@ -1,12 +1,11 @@
 package pl.blokaj.dbms.fileformat.deserializer;
 
-import pl.blokaj.dbms.columntype.Column;
+import pl.blokaj.dbms.columntype.ColumnPage;
 
 import java.io.IOException;
 import java.io.InputStream;
 
-public interface ColumnDeserializer<T extends Column> {
+public interface ColumnDeserializer<T extends ColumnPage> {
 
-
-    public Column deserialize(InputStream in) throws IOException;
+    public ColumnPage deserialize(InputStream in) throws IOException;
 }

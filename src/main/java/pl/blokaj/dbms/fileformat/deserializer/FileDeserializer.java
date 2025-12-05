@@ -1,13 +1,11 @@
 package pl.blokaj.dbms.fileformat.deserializer;
 
 import com.github.luben.zstd.ZstdInputStream;
-import pl.blokaj.dbms.Table.Table;
-import pl.blokaj.dbms.columntype.Column;
-import pl.blokaj.dbms.columntype.ColumnDictionary;
+import pl.blokaj.dbms.tablepage.TablePage;
+import pl.blokaj.dbms.columntype.ColumnPage;
 import pl.blokaj.dbms.fileformat.encoding.VLQ;
 import pl.blokaj.dbms.fileformat.headers.FileHeader;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -19,22 +17,22 @@ public class FileDeserializer {
     /**
      * Processes the file, adds Zstd layer to input for decompressing, uses dictionary to get correct deserializer to the data
      * @param in File input stream
-     * @return Deserialized Table
+     * @return Deserialized TablePage
      */
-    public static Table deserializeFile(InputStream in) {
+    public static TablePage deserializeFile(InputStream in) {
         try {
             ZstdInputStream zis = new ZstdInputStream(in);
             FileHeader fileHeader = new FileHeader();
-            fileHeader.setColumnNumber(VLQ.decodeSingleVLQ(zis));
-            Table newTable = new Table();
-            for (int i = 0; i < fileHeader.getColumnNumber(); i++) {
+            fileHeader.setColumnSize(VLQ.decodeSingleVLQ(zis));
+            TablePage newTablePage = new TablePage();
+            for (int i = 0; i < fileHeader.getColumnSize(); i++) {
                 ColumnDeserializer<?> deserializer;
                 byte classByte = (byte) zis.read();
                 deserializer = DeserializerDictionary.getColumnDeserializer(classByte);
-                Column next = deserializer.deserialize(zis);
-                newTable.addColumn(next);
+                ColumnPage next = deserializer.deserialize(zis);
+                newTablePage.addColumn(next);
             }
-            return newTable;
+            return newTablePage;
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

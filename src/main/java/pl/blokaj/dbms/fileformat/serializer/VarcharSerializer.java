@@ -1,19 +1,18 @@
 package pl.blokaj.dbms.fileformat.serializer;
 
-import com.github.luben.zstd.ZstdOutputStreamNoFinalizer;
-import pl.blokaj.dbms.columntype.VarcharColumn;
+import pl.blokaj.dbms.columntype.VarcharColumnPage;
 
 import java.io.*;
 import java.util.ArrayList;
 
 import static pl.blokaj.dbms.fileformat.encoding.VLQ.encodeSingleVLQ;
 
-public class VarcharSerializer implements ColumnSerializer<VarcharColumn> {
+public class VarcharSerializer implements ColumnSerializer<VarcharColumnPage> {
     private VarcharSerializer() {}
     public static final VarcharSerializer INSTANCE = new VarcharSerializer();
 
     @Override
-    public Boolean toFile(VarcharColumn column, OutputStream out) throws IOException {
+    public void toFile(VarcharColumnPage column, OutputStream out) throws IOException {
         ArrayList<byte[]> entries = column.getEntries();
         long sum = 0;
         for (byte[] entry: entries) {
@@ -25,6 +24,5 @@ public class VarcharSerializer implements ColumnSerializer<VarcharColumn> {
         for  (byte[] entry : entries) {
             out.write(entry);
         }
-        return true;
     }
 }

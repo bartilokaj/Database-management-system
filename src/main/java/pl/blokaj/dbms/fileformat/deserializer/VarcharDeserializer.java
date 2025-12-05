@@ -1,6 +1,6 @@
 package pl.blokaj.dbms.fileformat.deserializer;
 
-import pl.blokaj.dbms.columntype.VarcharColumn;
+import pl.blokaj.dbms.columntype.VarcharColumnPage;
 import pl.blokaj.dbms.fileformat.encoding.VLQ;
 import pl.blokaj.dbms.fileformat.headers.VarcharColumnHeader;
 
@@ -10,7 +10,7 @@ import java.util.ArrayList;
 /**
  * Handles deserializing varchar columns
  */
-public class VarcharDeserializer implements ColumnDeserializer<VarcharColumn> {
+public class VarcharDeserializer implements ColumnDeserializer<VarcharColumnPage> {
     private VarcharDeserializer() {}
     public static final VarcharDeserializer INSTANCE = new VarcharDeserializer();
 
@@ -22,7 +22,7 @@ public class VarcharDeserializer implements ColumnDeserializer<VarcharColumn> {
      * @return deserialized column
      */
     @Override
-    public VarcharColumn deserialize(InputStream in) throws IOException {
+    public VarcharColumnPage deserialize(InputStream in) throws IOException {
         VarcharColumnHeader header = new VarcharColumnHeader();
         header.setColumnSize(VLQ.decodeSingleVLQ(in));
         header.setDataSize(VLQ.decodeSingleVLQ(in));
@@ -46,6 +46,6 @@ public class VarcharDeserializer implements ColumnDeserializer<VarcharColumn> {
             toRead = Math.min(1024, (int) bytesLeft);
         }
         output.close();
-        return new VarcharColumn(entries);
+        return new VarcharColumnPage(entries);
     }
 }

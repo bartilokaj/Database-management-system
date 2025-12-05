@@ -6,11 +6,11 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Arrays;
 
-public final class Int64Column extends Column {
+public final class Int64ColumnPage extends ColumnPage {
     private final long[] data;
 
 
-    public Int64Column(long[] data) {
+    public Int64ColumnPage(long[] data) {
         this.data = data;
     }
 
@@ -24,5 +24,10 @@ public final class Int64Column extends Column {
 
     public String calculateMetric() {
         return ("Avg: " + Arrays.stream(data).average().orElse(0L));
+    }
+
+    @Override
+    public long getRowCount() {
+        return data.length;
     }
 }

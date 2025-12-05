@@ -1,7 +1,7 @@
 package pl.blokaj.dbms.fileformat.deserializer;
 
 import org.junit.jupiter.api.Test;
-import pl.blokaj.dbms.columntype.VarcharColumn;
+import pl.blokaj.dbms.columntype.VarcharColumnPage;
 import pl.blokaj.dbms.fileformat.serializer.VarcharSerializer;
 
 import java.io.ByteArrayInputStream;
@@ -29,12 +29,12 @@ public class VarcharDeserializerTest {
         entries.add(data);
         entries.add(new byte[]{1,2,3,4,5,6,7,8,9,'\0'});
         entries.add(new byte[]{9,8,7,6,5,4,3,2,1,'\0'});
-        VarcharColumn col = new VarcharColumn(entries);
+        VarcharColumnPage col = new VarcharColumnPage(entries);
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         VarcharSerializer.INSTANCE.toFile(col, out);
         ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-        VarcharColumn col2 = VarcharDeserializer.INSTANCE.deserialize(in);
+        VarcharColumnPage col2 = VarcharDeserializer.INSTANCE.deserialize(in);
         assertArrayEquals(new byte[]{1,2,3,4,5,6,7,8,9,'\0'}, col2.getEntries().getFirst());
         assertArrayEquals(new byte[]{1,2,3,4,5,6,7,8,9,'\0'}, col2.getEntries().get(1));
         assertArrayEquals(new byte[]{9,8,7,6,5,4,3,2,1,'\0'}, col2.getEntries().get(2));
@@ -51,12 +51,12 @@ public class VarcharDeserializerTest {
         ArrayList<byte[]> entries = new ArrayList<>();
         entries.add(stringToBytes("this project is sick"));
         entries.add(stringToBytes("dont think so"));
-        VarcharColumn col = new VarcharColumn(entries);
+        VarcharColumnPage col = new VarcharColumnPage(entries);
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         VarcharSerializer.INSTANCE.toFile(col, out);
         ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-        VarcharColumn col2 = VarcharDeserializer.INSTANCE.deserialize(in);
+        VarcharColumnPage col2 = VarcharDeserializer.INSTANCE.deserialize(in);
 
         assertArrayEquals(stringToBytes("this project is sick"),  col2.getEntries().getFirst());
         assertArrayEquals(stringToBytes("dont think so"),  col2.getEntries().get(1));

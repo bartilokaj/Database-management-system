@@ -1,8 +1,8 @@
 package pl.blokaj.dbms.app;
 
-import pl.blokaj.dbms.Table.Table;
-import pl.blokaj.dbms.columntype.Int64Column;
-import pl.blokaj.dbms.columntype.VarcharColumn;
+import pl.blokaj.dbms.tablepage.TablePage;
+import pl.blokaj.dbms.columntype.Int64ColumnPage;
+import pl.blokaj.dbms.columntype.VarcharColumnPage;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -20,7 +20,7 @@ public class ProcessCSV {
         return bytes;
     }
 
-    public static Table onlyInt() throws IOException {
+    public static TablePage onlyInt() throws IOException {
         String fileName = "src/main/resources/onlyInt.csv";
 
         try (BufferedReader br = new BufferedReader(new FileReader(fileName))) {
@@ -35,14 +35,14 @@ public class ProcessCSV {
                 col2[i] = Long.parseLong(values[1]);
             }
 
-            Table table = new Table();
-            table.addColumn(new Int64Column(col1));
-            table.addColumn(new Int64Column(col2));
-            return table;
+            TablePage tablePage = new TablePage();
+            tablePage.addColumn(new Int64ColumnPage(col1));
+            tablePage.addColumn(new Int64ColumnPage(col2));
+            return tablePage;
         }
     }
 
-    public static Table onlyString() throws IOException {
+    public static TablePage onlyString() throws IOException {
         String fileName = "src/main/resources/onlyInt.csv";
 
         try (BufferedReader br = new BufferedReader(new FileReader(fileName))) {
@@ -58,14 +58,14 @@ public class ProcessCSV {
                 entries2.add(stringToBytes(values[1]));
             }
 
-            Table table = new Table();
-            table.addColumn(new VarcharColumn(entries1));
-            table.addColumn(new VarcharColumn(entries2));
-            return table;
+            TablePage tablePage = new TablePage();
+            tablePage.addColumn(new VarcharColumnPage(entries1));
+            tablePage.addColumn(new VarcharColumnPage(entries2));
+            return tablePage;
         }
     }
 
-    public static Table stringAndInt() throws IOException {
+    public static TablePage stringAndInt() throws IOException {
         String fileName = "src/main/resources/onlyInt.csv";
 
         try (BufferedReader br = new BufferedReader(new FileReader(fileName))) {
@@ -81,14 +81,14 @@ public class ProcessCSV {
                 col2[i] = Long.parseLong(values[1]);
             }
 
-            Table table = new Table();
-            table.addColumn(new VarcharColumn(entries1));
-            table.addColumn(new Int64Column(col2));
-            return table;
+            TablePage tablePage = new TablePage();
+            tablePage.addColumn(new VarcharColumnPage(entries1));
+            tablePage.addColumn(new Int64ColumnPage(col2));
+            return tablePage;
         }
     }
 
-    public static Table intAndString() throws IOException {
+    public static TablePage intAndString() throws IOException {
         String fileName = "src/main/resources/onlyInt.csv";
 
         try (BufferedReader br = new BufferedReader(new FileReader(fileName))) {
@@ -104,14 +104,14 @@ public class ProcessCSV {
                 col2[i] = Long.parseLong(values[0]);
             }
 
-            Table table = new Table();
-            table.addColumn(new Int64Column(col2));
-            table.addColumn(new VarcharColumn(entries1));
-            return table;
+            TablePage tablePage = new TablePage();
+            tablePage.addColumn(new Int64ColumnPage(col2));
+            tablePage.addColumn(new VarcharColumnPage(entries1));
+            return tablePage;
         }
     }
 
-    public static Table processCSV(String filePath, int size, int int64Columns, int varcharColumns) throws IOException {
+    public static TablePage processCSV(String filePath, int size, int int64Columns, int varcharColumns) throws IOException {
         try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
             String line;
 
@@ -132,14 +132,14 @@ public class ProcessCSV {
                 }
             }
 
-            Table table = new Table();
+            TablePage tablePage = new TablePage();
             for (int i = 0; i < int64Columns; i++) {
-                table.addColumn(new Int64Column(longs[i]));
+                tablePage.addColumn(new Int64ColumnPage(longs[i]));
             }
             for (int i = 0; i < varcharColumns; i++) {
-                table.addColumn(new VarcharColumn(varchars[i]));
+                tablePage.addColumn(new VarcharColumnPage(varchars[i]));
             }
-            return table;
+            return tablePage;
         }
     }
 }
