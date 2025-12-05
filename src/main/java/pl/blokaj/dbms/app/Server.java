@@ -1,5 +1,6 @@
 package pl.blokaj.dbms.app;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import io.javalin.Javalin;
 import io.javalin.http.Context;
 import io.javalin.openapi.OpenApi;
@@ -7,18 +8,24 @@ import io.javalin.openapi.OpenApiContent;
 import io.javalin.openapi.OpenApiParam;
 import io.javalin.openapi.OpenApiResponse;
 import io.javalin.openapi.plugin.OpenApiPlugin;
+import org.jetbrains.annotations.NotNull;
 import pl.blokaj.dbms.metastore.Metastore;
+import pl.blokaj.dbms.model.error.MultipleProblemsError;
 import pl.blokaj.dbms.model.table.ShallowTable;
 import pl.blokaj.dbms.model.table.TableSchema;
+import pl.blokaj.dbms.queryservice.QueryService;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 
 public class Server implements AutoCloseable {
     private static Metastore metastore;
+    private static QueryService queryService;
 
     Server() throws IOException {
         metastore = new Metastore();
+        queryService = new QueryService(metastore);
     }
 
     public void runServer() throws IOException {
@@ -27,7 +34,7 @@ public class Server implements AutoCloseable {
                     defCfg.withInfo(info -> {
                         info.setTitle("Database API");
                         info.setVersion("1.0");
-                    });
+                    })
             );
         });
 
@@ -37,14 +44,14 @@ public class Server implements AutoCloseable {
 
         app.get("/tables", this::getTablesHandler);
         app.get("/table/{tableId}", this::getTableByIdHandler);
-        app.delete("/table/{tableId}", );
-        app.put("/table",);
+        app.delete("/table/{tableId}", this::deleteTableHandler);
+        app.put("/table", this::createTable);
         app.get("/queries",);
         app.get("/query/{queryId}",);
-        app.port("/query",);
-        app.get("/result/{queryId}");
-        app.get("/error/{queryId}");
-        app.get("/system/info");
+        app.post("/query",);
+        app.get("/result/{queryId}",);
+        app.get("/error/{queryId}",);
+        app.get("/system/info",);
 
     }
 
@@ -66,23 +73,44 @@ public class Server implements AutoCloseable {
                     )
             }
     )
-    private void getTablesHandler(Context ctx) {
+    private void getTablesHandler(Context context) {
         List<ShallowTable> tables = metastore.getShallowTables();
-        ctx.status(200);
-        ctx.json(tables);
+        context.status(200).json(tables);
     }
 
 
-    public void getTableByIdHandler(Context ctx) {
-        String uuid = ctx.pathParam("tableId");
+    private void getTableByIdHandler(Context context) {
+        String uuid = context.pathParam("tableId");
         TableSchema requestSchema = metastore.getTableById(uuid);
         if (requestSchema != null) {
-            ctx.status(200);
-            ctx.json(requestSchema);
+            context.status(200).json(requestSchema);
         }
         else {
-            ctx.status(404);
-            ctx.json(new Error("Couldn't find a table of given ID"));
+            context.status(404).json(new Error("Couldn't find a table of given ID"));
         }
     }
+
+    private void deleteTableHandler(Context context) {
+        String tableId = context.pathParam("tableId");
+        boolean result = metastore.deleteTable(tableId);
+        if (result) {
+            context.status(200);
+        }
+        else {
+            context.status(404).json(new Error("Couldn't find a table of given ID"));
+        }
+    }
+
+    private void createTable(Context context) {
+        List<MultipleProblemsError.Problem> problems = metastore.validateTablePut(context.bodyAsClass(JsonNode.class));
+        if (problems.isEmpty()) {
+            String newUUID = metastore.createTable(context.bodyAsClass(TableSchema.class));
+            context.status(200).json(newUUID);
+        }
+        else {
+            context.status(400).json(problems);
+        }
+    }
+
+    private void
 }

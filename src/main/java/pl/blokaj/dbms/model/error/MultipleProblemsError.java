@@ -1,5 +1,7 @@
 package pl.blokaj.dbms.model.error;
 
+import jakarta.annotation.Nonnull;
+
 import java.util.List;
 
 /**
@@ -35,7 +37,7 @@ public class MultipleProblemsError {
 
         public Problem() {}
 
-        public Problem(String error, String context) {
+        public Problem(@Nonnull String error, String context) {
             this.error = error;
             this.context = context;
         }
