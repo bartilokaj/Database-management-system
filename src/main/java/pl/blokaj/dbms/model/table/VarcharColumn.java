@@ -11,22 +11,27 @@ import java.util.List;
 public class VarcharColumn implements ColumnBase {
     @Nonnull
     @JsonProperty("VarcharColumn")
-    private List<String> values;
+    private List<byte[]> values;
 
     // Constructors
     public VarcharColumn() {}
 
-    public VarcharColumn(@Nonnull List<String> values) {
+    public VarcharColumn(@Nonnull List<byte[]> values) {
         this.values = values;
+    }
+
+    @Override
+    public ColumnBase sliceColumn(int limit) {
+        return new VarcharColumn(values.subList(0, limit));
     }
 
     // Getter and Setter
     @Nonnull
-    public List<String> getValues() {
+    public List<byte[]> getValues() {
         return values;
     }
 
-    public void setValues(@Nonnull List<String> values) {
+    public void setValues(@Nonnull List<byte[]> values) {
         this.values = values;
     }
 }

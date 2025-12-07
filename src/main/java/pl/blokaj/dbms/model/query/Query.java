@@ -13,10 +13,10 @@ public class Query {
 
     @Nonnull
     @JsonProperty("status")
-    private QueryStatus status;
+    private volatile QueryStatus status;
 
     @JsonProperty("isResultAvailable")
-    private boolean isResultAvailable;
+    private volatile boolean isResultAvailable;
 
     @JsonProperty("queryDefinition")
     @JsonTypeInfo(

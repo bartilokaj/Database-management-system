@@ -2,16 +2,12 @@ package pl.blokaj.dbms.metastore;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.javalin.http.Context;
 import pl.blokaj.dbms.filesystem.TableFilesManager;
 import pl.blokaj.dbms.model.error.MultipleProblemsError;
-import pl.blokaj.dbms.model.table.Column;
 import pl.blokaj.dbms.model.table.LogicalColumnType;
 import pl.blokaj.dbms.model.table.ShallowTable;
 import pl.blokaj.dbms.model.table.TableSchema;
 
-import java.beans.Transient;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -21,10 +17,11 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class Metastore implements AutoCloseable {
-    private Set<String> tablesUUID = ConcurrentHashMap.newKeySet();
+    private Set<String> tableUuids = ConcurrentHashMap.newKeySet();
     private ConcurrentHashMap<String, TableSchema> tableSchemaMap = new ConcurrentHashMap<>();
     private ConcurrentHashMap<String, List<String>> tableFilesMap = new ConcurrentHashMap<>();
     private transient final ConcurrentHashMap<String, TableFilesManager> tableFilesManagersMap = new ConcurrentHashMap<>();
+    private final transient ConcurrentHashMap<String, String> nameToUuidMap;
     private static final String JSON_NAME = "store.json";
     private static final ObjectMapper mapper = new ObjectMapper();
     private transient final Path runtimeFile;
@@ -47,12 +44,17 @@ public class Metastore implements AutoCloseable {
 
         Metastore loaded =  mapper.readValue(runtimeFile.toFile(), Metastore.class);
         this.tableSchemaMap = loaded.tableSchemaMap;
-        this.tablesUUID = loaded.tablesUUID;
+        this.tableUuids = loaded.tableUuids;
         this.tableFilesMap = loaded.tableFilesMap;
 
-        for (String uuid: tablesUUID) {
+        for (String uuid: tableUuids) {
             tableFilesManagersMap.put(uuid, new TableFilesManager(tableFilesMap.get(uuid), tableSchemaMap.get(uuid)));
         }
+
+        this.nameToUuidMap = new ConcurrentHashMap<>();
+        tableSchemaMap.forEach((uuid, schema) -> {
+            nameToUuidMap.put(schema.getName(), uuid);
+        });
     }
 
     public List<ShallowTable> getShallowTables() {
@@ -93,8 +95,9 @@ public class Metastore implements AutoCloseable {
 
             tableFilesMap.remove(uuid);
             tableSchemaMap.remove(uuid);
-            tablesUUID.remove(uuid);
+            tableUuids.remove(uuid);
             tableFilesManagersMap.remove(uuid);
+            nameToUuidMap.remove(table.getName());
             return true;
         }
     }
@@ -106,7 +109,7 @@ public class Metastore implements AutoCloseable {
         String tableName = tableJson.get("name").asText();
         for (TableSchema table: tableSchemaMap.values()) {
             if (table.getName().equals(tableName)) {
-                problems.add(new MultipleProblemsError.Problem("Table with name '" + tableName + "' already exists", null));
+                problems.add(new MultipleProblemsError.Problem("Table with this name already exists", tableName));
             }
         }
 
@@ -136,13 +139,26 @@ public class Metastore implements AutoCloseable {
     }
 
     public String createTable(TableSchema newTable) {
-        String newUUID = UUID.randomUUID().toString();
+        String newUuid = UUID.randomUUID().toString();
         List<String> fileNames = Collections.synchronizedList(new ArrayList<>());
-        tablesUUID.add(newUUID);
-        tableSchemaMap.put(newUUID, newTable);
-        tableFilesMap.put(newUUID, fileNames);
-        tableFilesManagersMap.put(newUUID, new TableFilesManager(fileNames, newTable));
-        return newUUID;
+        tableUuids.add(newUuid);
+        tableSchemaMap.put(newUuid, newTable);
+        tableFilesMap.put(newUuid, fileNames);
+        tableFilesManagersMap.put(newUuid, new TableFilesManager(fileNames, newTable));
+        nameToUuidMap.put(newTable.getName(), newUuid);
+        return newUuid;
+    }
+
+    public String getTableUuid(String tableName) {
+        return nameToUuidMap.get(tableName);
+    }
+
+    public Set<String> getTableColumnNames(String tableName) {
+        Set<String> tableColumnNames = new HashSet<>();
+        tableSchemaMap.get(tableName).getColumns().forEach(column -> {
+            tableColumnNames.add(column.getName());
+        });
+        return tableColumnNames;
     }
 
     private void save() throws IOException {

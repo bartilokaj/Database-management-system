@@ -20,6 +20,11 @@ public class Int64Column implements ColumnBase {
         this.values = values;
     }
 
+    @Override
+    public ColumnBase sliceColumn(int limit) {
+        return new Int64Column(values.subList(0, limit));
+    }
+
     // Getter and Setter
     @Nonnull
     public List<Long> getValues() {

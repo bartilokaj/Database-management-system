@@ -1,7 +1,16 @@
 package pl.blokaj.dbms.model.query;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.BooleanNode;
 import jakarta.annotation.Nonnull;
+import pl.blokaj.dbms.metastore.Metastore;
+import pl.blokaj.dbms.model.error.MultipleProblemsError;
+
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Description of the COPY query from CSV file.
@@ -57,6 +66,38 @@ public class CopyQuery implements QueryDefinition {
         this.destinationTableName = destinationTableName;
         this.destinationColumns = destinationColumns;
         this.doesCsvContainHeader = doesCsvContainHeader != null ? doesCsvContainHeader : false;
+    }
+
+    public static List<MultipleProblemsError.Problem> validateQuery(JsonNode copyNode, Metastore m) {
+        List<MultipleProblemsError.Problem> problems = new ArrayList<>();
+
+        String csvPath = copyNode.get("sourceFilepath").asText();
+        Path path = Path.of(csvPath);
+        if (!Files.exists(path)) problems.add(new MultipleProblemsError.Problem("Specified file does not exist", csvPath));
+
+        String tableName = copyNode.get("destinationTableName").asText();
+        if (m.getTableUuid(tableName) == null) problems.add(new MultipleProblemsError.Problem("Table of that name does not exist", tableName));
+        else {
+            Set<String> columnNames = m.getTableColumnNames(tableName);
+            JsonNode destinationColumnsNode = copyNode.get("destinationColumns");
+            if (destinationColumnsNode != null) {
+                if (!destinationColumnsNode.isArray()) problems.add(new MultipleProblemsError.Problem("destinationColumns is not an array", null));
+                else {
+                    for (JsonNode col : destinationColumnsNode) {
+                        if (!columnNames.contains(col.asText())) {
+                            problems.add(new MultipleProblemsError.Problem("Column does not exist in destination table", col.asText()));
+                        }
+                    }
+                }
+            }
+        }
+
+        JsonNode headerFlagNode = copyNode.get("doesCsvContainHeader");
+        if (headerFlagNode != null && !headerFlagNode.isBoolean()) {
+            problems.add(new MultipleProblemsError.Problem("doesCsvContainHeader is not boolean", null));
+        }
+
+        return problems;
     }
 
     // Getters and setters
