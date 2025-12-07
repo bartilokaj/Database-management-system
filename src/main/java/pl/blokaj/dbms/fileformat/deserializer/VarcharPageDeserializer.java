@@ -2,7 +2,7 @@ package pl.blokaj.dbms.fileformat.deserializer;
 
 import pl.blokaj.dbms.columntype.VarcharColumnPage;
 import pl.blokaj.dbms.fileformat.encoding.VLQ;
-import pl.blokaj.dbms.fileformat.headers.VarcharColumnHeader;
+import pl.blokaj.dbms.fileformat.headers.VarcharColumnPageHeader;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -10,9 +10,9 @@ import java.util.ArrayList;
 /**
  * Handles deserializing varchar columns
  */
-public class VarcharDeserializer implements ColumnDeserializer<VarcharColumnPage> {
-    private VarcharDeserializer() {}
-    public static final VarcharDeserializer INSTANCE = new VarcharDeserializer();
+public class VarcharPageDeserializer implements ColumnPageDeserializer<VarcharColumnPage> {
+    private VarcharPageDeserializer() {}
+    public static final VarcharPageDeserializer INSTANCE = new VarcharPageDeserializer();
 
     /**
      * Reads the input stream and looks for '\0' separator
@@ -23,7 +23,7 @@ public class VarcharDeserializer implements ColumnDeserializer<VarcharColumnPage
      */
     @Override
     public VarcharColumnPage deserialize(InputStream in) throws IOException {
-        VarcharColumnHeader header = new VarcharColumnHeader();
+        VarcharColumnPageHeader header = new VarcharColumnPageHeader();
         header.setColumnSize(VLQ.decodeSingleVLQ(in));
         header.setDataSize(VLQ.decodeSingleVLQ(in));
         ArrayList<byte[]> entries = new ArrayList<>((int) header.getColumnSize());

@@ -5,13 +5,13 @@ package pl.blokaj.dbms.fileformat.headers;
  */
 public class FileHeader {
     // number of columns
-    long columnSize;
+    long columnNumber;
 
-    public long getColumnSize() {
-        return columnSize;
+    public long getColumnNumber() {
+        return columnNumber;
     }
 
-    public void setColumnSize(long columnNumber) {
-        this.columnSize = columnNumber;
+    public void setColumnNumber(long columnNumber) {
+        this.columnNumber = columnNumber;
     }
 }

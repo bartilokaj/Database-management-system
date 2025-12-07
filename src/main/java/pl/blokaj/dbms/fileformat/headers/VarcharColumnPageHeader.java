@@ -3,7 +3,7 @@ package pl.blokaj.dbms.fileformat.headers;
 /**
  * Defines varchar column header
  */
-public class VarcharColumnHeader extends ColumnHeader {
+public class VarcharColumnPageHeader extends ColumnPageHeader {
     // number of entries
     private long columnSize;
     // number of bytes that are in the column
@@ -25,6 +25,6 @@ public class VarcharColumnHeader extends ColumnHeader {
         this.dataSize = dataSize;
     }
 
-    public VarcharColumnHeader() {}
+    public VarcharColumnPageHeader() {}
 
 }

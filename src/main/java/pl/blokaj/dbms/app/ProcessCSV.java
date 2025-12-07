@@ -1,5 +1,7 @@
 package pl.blokaj.dbms.app;
 
+import pl.blokaj.dbms.fileformat.deserializer.FileDeserializer;
+import pl.blokaj.dbms.fileformat.serializer.FileSerializer;
 import pl.blokaj.dbms.tablepage.TablePage;
 import pl.blokaj.dbms.columntype.Int64ColumnPage;
 import pl.blokaj.dbms.columntype.VarcharColumnPage;
@@ -38,6 +40,8 @@ public class ProcessCSV {
             TablePage tablePage = new TablePage();
             tablePage.addColumn(new Int64ColumnPage(col1));
             tablePage.addColumn(new Int64ColumnPage(col2));
+
+            FileSerializer.toFile("src/main/resources/onlyInt.dbms", tablePage);
             return tablePage;
         }
     }
@@ -61,6 +65,8 @@ public class ProcessCSV {
             TablePage tablePage = new TablePage();
             tablePage.addColumn(new VarcharColumnPage(entries1));
             tablePage.addColumn(new VarcharColumnPage(entries2));
+
+            FileSerializer.toFile("src/main/resources/onlyString.dbms", tablePage);
             return tablePage;
         }
     }
@@ -84,6 +90,8 @@ public class ProcessCSV {
             TablePage tablePage = new TablePage();
             tablePage.addColumn(new VarcharColumnPage(entries1));
             tablePage.addColumn(new Int64ColumnPage(col2));
+
+            FileSerializer.toFile("src/main/resources/stringAndInt.dbms", tablePage);
             return tablePage;
         }
     }
@@ -107,6 +115,8 @@ public class ProcessCSV {
             TablePage tablePage = new TablePage();
             tablePage.addColumn(new Int64ColumnPage(col2));
             tablePage.addColumn(new VarcharColumnPage(entries1));
+
+            FileSerializer.toFile("src/main/resources/intAndString.dbms", tablePage);
             return tablePage;
         }
     }

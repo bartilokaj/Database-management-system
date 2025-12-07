@@ -23,12 +23,17 @@ public class Server implements AutoCloseable {
     private static Metastore metastore;
     private static QueryService queryService;
 
-    Server() throws IOException {
+    public Server() throws IOException {
         metastore = new Metastore();
         queryService = new QueryService(metastore);
     }
 
     public void runServer() throws IOException {
+        Javalin app = setupServer();
+        app.start(7000);
+    }
+
+    public Javalin setupServer() {
         OpenApiPlugin openApiPlugin = new OpenApiPlugin(cfg -> {
             cfg.withDefinitionConfiguration((doc, defCfg) ->
                     defCfg.withInfo(info -> {
@@ -53,6 +58,7 @@ public class Server implements AutoCloseable {
         app.get("/error/{queryId}", this::getQueryErrorHandler);
         app.get("/system/info", this::getSystemInfo);
 
+        return app;
     }
 
     @Override

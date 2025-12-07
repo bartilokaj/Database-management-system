@@ -1,6 +1,6 @@
 package pl.blokaj.dbms.columntype;
 
-import pl.blokaj.dbms.fileformat.serializer.VarcharSerializer;
+import pl.blokaj.dbms.fileformat.serializer.VarcharPageSerializer;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -24,7 +24,7 @@ public final class VarcharColumnPage extends ColumnPage {
 
     @Override
     public void serialize(OutputStream stream) throws IOException {
-        VarcharSerializer.INSTANCE.toFile(this, stream);
+        VarcharPageSerializer.INSTANCE.toFile(this, stream);
     }
 
     @Override
@@ -34,10 +34,5 @@ public final class VarcharColumnPage extends ColumnPage {
             lengthSum = lengthSum.add(BigInteger.valueOf(entry.length));
         }
         return ("lengthSum: " + lengthSum);
-    }
-
-    @Override
-    public long getRowCount() {
-        return entries.size();
     }
 }

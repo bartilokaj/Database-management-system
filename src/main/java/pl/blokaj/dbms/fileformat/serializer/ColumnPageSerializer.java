@@ -4,7 +4,7 @@ import pl.blokaj.dbms.columntype.ColumnPage;
 import java.io.IOException;
 import java.io.OutputStream;
 
-public interface ColumnSerializer<T extends ColumnPage> {
+public interface ColumnPageSerializer<T extends ColumnPage> {
 
-    void toFile(T column, OutputStream out) throws IOException;
+    Boolean toFile(T column, OutputStream out) throws IOException;
 }

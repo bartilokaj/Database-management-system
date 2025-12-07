@@ -17,16 +17,16 @@ public class FileDeserializer {
     /**
      * Processes the file, adds Zstd layer to input for decompressing, uses dictionary to get correct deserializer to the data
      * @param in File input stream
-     * @return Deserialized TablePage
+     * @return Deserialized Table
      */
     public static TablePage deserializeFile(InputStream in) {
         try {
             ZstdInputStream zis = new ZstdInputStream(in);
             FileHeader fileHeader = new FileHeader();
-            fileHeader.setColumnSize(VLQ.decodeSingleVLQ(zis));
+            fileHeader.setColumnNumber(VLQ.decodeSingleVLQ(zis));
             TablePage newTablePage = new TablePage();
-            for (int i = 0; i < fileHeader.getColumnSize(); i++) {
-                ColumnDeserializer<?> deserializer;
+            for (int i = 0; i < fileHeader.getColumnNumber(); i++) {
+                ColumnPageDeserializer<?> deserializer;
                 byte classByte = (byte) zis.read();
                 deserializer = DeserializerDictionary.getColumnDeserializer(classByte);
                 ColumnPage next = deserializer.deserialize(zis);

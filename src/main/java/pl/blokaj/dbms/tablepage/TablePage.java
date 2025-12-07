@@ -5,17 +5,17 @@ import pl.blokaj.dbms.columntype.ColumnPage;
 import java.util.ArrayList;
 
 public class TablePage {
-    private final ArrayList<ColumnPage> columnPages;
+    private final ArrayList<ColumnPage> columns;
 
     public TablePage() {
-        columnPages = new ArrayList<>();
+        columns = new ArrayList<>();
     }
 
-    public void addColumn(ColumnPage columnPage) {
-        columnPages.add(columnPage);
+    public void addColumn(ColumnPage column) {
+        columns.add(column);
     }
 
     public ArrayList<ColumnPage> getColumns() {
-        return columnPages;
+        return columns;
     }
 }

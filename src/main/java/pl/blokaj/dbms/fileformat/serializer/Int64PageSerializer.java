@@ -10,15 +10,18 @@ import static pl.blokaj.dbms.fileformat.encoding.VLQ.encodeSingleVLQ;
 import static pl.blokaj.dbms.fileformat.encoding.VLQ.encodeVLQ;
 import static pl.blokaj.dbms.fileformat.encoding.ZigZag.encodeZigZag;
 
-public class Int64Serializer implements ColumnSerializer<Int64ColumnPage> {
-    private Int64Serializer() {}
-    public static final Int64Serializer INSTANCE = new Int64Serializer();
+public class Int64PageSerializer implements ColumnPageSerializer<Int64ColumnPage> {
+    private Int64PageSerializer() {}
+    public static final Int64PageSerializer INSTANCE = new Int64PageSerializer();
 
     @Override
-    public void toFile(Int64ColumnPage column, OutputStream out) throws IOException {
+    public Boolean toFile(Int64ColumnPage column, OutputStream out) throws IOException {
         long[] data = column.getData();
         encodeSingleVLQ(data.length, out);
         byte[] encodedData = encodeVLQ(encodeZigZag(encodeDelta(data)));
         out.write(encodedData);
+        return true;
     }
+
+
 }

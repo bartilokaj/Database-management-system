@@ -1,6 +1,6 @@
 package pl.blokaj.dbms.columntype;
 
-import pl.blokaj.dbms.fileformat.serializer.Int64Serializer;
+import pl.blokaj.dbms.fileformat.serializer.Int64PageSerializer;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -19,15 +19,10 @@ public final class Int64ColumnPage extends ColumnPage {
     }
 
     public void serialize(OutputStream stream) throws IOException {
-        Int64Serializer.INSTANCE.toFile(this, stream);
+        Int64PageSerializer.INSTANCE.toFile(this, stream);
     }
 
     public String calculateMetric() {
         return ("Avg: " + Arrays.stream(data).average().orElse(0L));
-    }
-
-    @Override
-    public long getRowCount() {
-        return data.length;
     }
 }

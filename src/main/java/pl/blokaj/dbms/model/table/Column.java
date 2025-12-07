@@ -14,7 +14,7 @@ public class Column {
     @JsonProperty("type")
     private LogicalColumnType type;
 
-
+    public Column(){}
     public Column(@Nonnull String name, @Nonnull LogicalColumnType type) {
         this.name = name;
         this.type = type;

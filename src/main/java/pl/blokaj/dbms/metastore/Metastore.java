@@ -26,35 +26,51 @@ public class Metastore implements AutoCloseable {
     private static final ObjectMapper mapper = new ObjectMapper();
     private transient final Path runtimeFile;
 
+    // Simple constructor, initializes transient fields
     public Metastore() throws IOException {
+        nameToUuidMap = new ConcurrentHashMap<>();
+
         Path dataDir = Path.of("data");
         Files.createDirectories(dataDir);
         runtimeFile = dataDir.resolve(JSON_NAME);
+    }
 
-        if (!Files.exists(runtimeFile)) {
-            try (InputStream is = getClass().getClassLoader().getResourceAsStream(JSON_NAME)) {
+    // Static factory method for safe loading
+    public static Metastore load() throws IOException {
+        Metastore instance = new Metastore();
+
+        // Load JSON if it exists, else create it
+        if (!Files.exists(instance.runtimeFile)) {
+            try (InputStream is = instance.getClass().getClassLoader().getResourceAsStream(JSON_NAME)) {
                 if (is != null) {
-                    Files.copy(is, runtimeFile, StandardCopyOption.REPLACE_EXISTING);
+                    Files.copy(is, instance.runtimeFile, StandardCopyOption.REPLACE_EXISTING);
                 } else {
                     // Resource not found: create empty JSON
-                    mapper.writeValue(runtimeFile.toFile(), this);
+                    mapper.writeValue(instance.runtimeFile.toFile(), instance);
+                    return instance;
                 }
             }
         }
 
-        Metastore loaded =  mapper.readValue(runtimeFile.toFile(), Metastore.class);
-        this.tableSchemaMap = loaded.tableSchemaMap;
-        this.tableUuids = loaded.tableUuids;
-        this.tableFilesMap = loaded.tableFilesMap;
+        // Load JSON
+        Metastore loaded = mapper.readValue(instance.runtimeFile.toFile(), Metastore.class);
 
-        for (String uuid: tableUuids) {
-            tableFilesManagersMap.put(uuid, new TableFilesManager(tableFilesMap.get(uuid), tableSchemaMap.get(uuid)));
+        // Copy deserialized fields
+        instance.tableSchemaMap = loaded.tableSchemaMap;
+        instance.tableUuids = loaded.tableUuids;
+        instance.tableFilesMap = loaded.tableFilesMap;
+
+        // Rebuild runtime-only maps
+        for (String uuid : instance.tableUuids) {
+            instance.tableFilesManagersMap.put(
+                    uuid,
+                    new TableFilesManager(instance.tableFilesMap.get(uuid), instance.tableSchemaMap.get(uuid))
+            );
         }
 
-        this.nameToUuidMap = new ConcurrentHashMap<>();
-        tableSchemaMap.forEach((uuid, schema) -> {
-            nameToUuidMap.put(schema.getName(), uuid);
-        });
+        loaded.tableSchemaMap.forEach((uuid, schema) -> instance.nameToUuidMap.put(schema.getName(), uuid));
+
+        return instance;
     }
 
     public List<ShallowTable> getShallowTables() {
