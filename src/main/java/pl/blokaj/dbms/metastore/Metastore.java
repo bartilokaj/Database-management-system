@@ -189,7 +189,6 @@ public class Metastore implements AutoCloseable {
 
     @Override
     public void close() throws IOException {
-        System.out.println("Im in closing!");
         mapper.enable(SerializationFeature.INDENT_OUTPUT);
         Files.deleteIfExists(runtimeFile);
         mapper.writeValue(runtimeFile.toFile(), this);
