@@ -2,6 +2,7 @@ package pl.blokaj.dbms.model.query;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import pl.blokaj.dbms.model.table.ColumnBase;
+import pl.blokaj.dbms.tablepage.TablePage;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,6 +31,13 @@ public class QueryResult {
                 );
 
         return new QueryResult(limit, newColumns);
+    }
+
+    public void addNextPage(TablePage page) {
+        for (int i = 0; i < columns.size(); i++ ) {
+            columns.get(i).addNextPage(page.getColumns().get(i));
+        }
+        rowCount += page.getColumns().get(0).getRowCount();
     }
 
     public int getRowCount() {

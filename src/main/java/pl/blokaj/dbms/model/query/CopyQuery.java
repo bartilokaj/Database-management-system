@@ -1,10 +1,12 @@
 package pl.blokaj.dbms.model.query;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.BooleanNode;
 import jakarta.annotation.Nonnull;
 import pl.blokaj.dbms.metastore.Metastore;
 import pl.blokaj.dbms.model.error.MultipleProblemsError;
+import pl.blokaj.dbms.queryservice.QueryType;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -80,7 +82,7 @@ public class CopyQuery implements QueryDefinition {
         else {
             Set<String> columnNames = m.getTableColumnNames(tableName);
             JsonNode destinationColumnsNode = copyNode.get("destinationColumns");
-            if (destinationColumnsNode != null) {
+            if (!destinationColumnsNode.isNull()) {
                 if (!destinationColumnsNode.isArray()) problems.add(new MultipleProblemsError.Problem("destinationColumns is not an array", null));
                 else {
                     for (JsonNode col : destinationColumnsNode) {
@@ -93,11 +95,23 @@ public class CopyQuery implements QueryDefinition {
         }
 
         JsonNode headerFlagNode = copyNode.get("doesCsvContainHeader");
-        if (headerFlagNode != null && !headerFlagNode.isBoolean()) {
+        if (!headerFlagNode.isNull() && !headerFlagNode.isBoolean()) {
             problems.add(new MultipleProblemsError.Problem("doesCsvContainHeader is not boolean", null));
         }
 
         return problems;
+    }
+
+    @Override
+    @JsonIgnore
+    public QueryType getQueryType() {
+        return QueryType.COPY;
+    }
+
+    @Override
+    @JsonIgnore
+    public String getTableName() {
+        return getDestinationTableName();
     }
 
     // Getters and setters

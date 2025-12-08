@@ -8,6 +8,7 @@ import io.javalin.openapi.OpenApiContent;
 import io.javalin.openapi.OpenApiResponse;
 import io.javalin.openapi.plugin.OpenApiPlugin;
 import pl.blokaj.dbms.metastore.Metastore;
+import pl.blokaj.dbms.model.SystemInformation;
 import pl.blokaj.dbms.model.error.MultipleProblemsError;
 import pl.blokaj.dbms.model.error.Error;
 import pl.blokaj.dbms.model.query.*;
@@ -17,15 +18,18 @@ import pl.blokaj.dbms.queryservice.QueryService;
 import pl.blokaj.dbms.queryservice.QueryType;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.util.List;
 
 public class Server implements AutoCloseable {
     private static Metastore metastore;
     private static QueryService queryService;
+    private static SystemInformation systemInfo;
 
     public Server() throws IOException {
-        metastore = new Metastore();
+        metastore = Metastore.load();
         queryService = new QueryService(metastore);
+        systemInfo = new SystemInformation(Instant.now().getEpochSecond());
     }
 
     public void runServer() throws IOException {
@@ -56,7 +60,7 @@ public class Server implements AutoCloseable {
         app.post("/query", this::submitQueryHandler);
         app.get("/result/{queryId}", this::getQueryResultHandler);
         app.get("/error/{queryId}", this::getQueryErrorHandler);
-        app.get("/system/info", this::getSystemInfo);
+        app.get("/system/info", this::getSystemInfoHandler);
 
         return app;
     }
@@ -67,18 +71,6 @@ public class Server implements AutoCloseable {
     }
 
 
-    @OpenApi(
-            summary = "Get list of tables with their accompanying IDs...",
-            operationId = "getTables",
-            tags = {"schema", "proj3"},
-            path = "/tables",
-            responses = {
-                    @OpenApiResponse(
-                            status = "200",
-                            content = {@OpenApiContent(from = ShallowTable[].class)}
-                    )
-            }
-    )
     private void getTablesHandler(Context context) {
         List<ShallowTable> tables = metastore.getShallowTables();
         context.status(200).json(tables);
@@ -191,7 +183,8 @@ public class Server implements AutoCloseable {
         }
     }
 
-    private void getSystemInfo(Context context) {
-        // TODO
+    private void getSystemInfoHandler(Context context) {
+        systemInfo.updateUptime(Instant.now().getEpochSecond());
+        context.status(200).json(systemInfo);
     }
 }

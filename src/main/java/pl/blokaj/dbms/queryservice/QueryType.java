@@ -14,10 +14,11 @@ public enum QueryType {
     NONE;
 
     public static QueryType getQueryType(JsonNode queryNode) {
-        if (queryNode.get("sourceFilepath") != null && queryNode.get("destinationTableName") != null) {
+        if (queryNode.get("sourceFilepath") != null && !queryNode.get("sourceFilepath").isNull()
+                && queryNode.get("destinationTableName") != null && !queryNode.get("destinationTableName").isNull()) {
             return COPY;
         }
-        else if (queryNode.get("tableName") != null) {
+        else if (queryNode.get("tableName") != null && !queryNode.get("tableName").isNull()) {
             return SELECT;
         }
         else {

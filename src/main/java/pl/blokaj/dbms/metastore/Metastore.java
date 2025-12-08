@@ -1,12 +1,16 @@
 package pl.blokaj.dbms.metastore;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import pl.blokaj.dbms.filesystem.TableFilesManager;
+import pl.blokaj.dbms.model.error.Error;
 import pl.blokaj.dbms.model.error.MultipleProblemsError;
 import pl.blokaj.dbms.model.table.LogicalColumnType;
 import pl.blokaj.dbms.model.table.ShallowTable;
 import pl.blokaj.dbms.model.table.TableSchema;
+import pl.blokaj.dbms.querytasks.DeleteTableQueryTask;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -20,59 +24,68 @@ public class Metastore implements AutoCloseable {
     private Set<String> tableUuids = ConcurrentHashMap.newKeySet();
     private ConcurrentHashMap<String, TableSchema> tableSchemaMap = new ConcurrentHashMap<>();
     private ConcurrentHashMap<String, List<String>> tableFilesMap = new ConcurrentHashMap<>();
-    private transient final ConcurrentHashMap<String, TableFilesManager> tableFilesManagersMap = new ConcurrentHashMap<>();
-    private final transient ConcurrentHashMap<String, String> nameToUuidMap;
+    private transient ConcurrentHashMap<String, TableFilesManager> tableFilesManagersMap = new ConcurrentHashMap<>();
+    private transient ConcurrentHashMap<String, String> nameToUuidMap;
     private static final String JSON_NAME = "store.json";
     private static final ObjectMapper mapper = new ObjectMapper();
-    private transient final Path runtimeFile;
+    private transient Path runtimeFile;
 
     // Simple constructor, initializes transient fields
-    public Metastore() throws IOException {
-        nameToUuidMap = new ConcurrentHashMap<>();
 
-        Path dataDir = Path.of("data");
-        Files.createDirectories(dataDir);
-        runtimeFile = dataDir.resolve(JSON_NAME);
+    /**
+     * Constructor does not write to file.
+     * Use load() to create or read from JSON.
+     */
+    public Metastore() {
+        tableFilesManagersMap = new ConcurrentHashMap<>();
+        nameToUuidMap = new ConcurrentHashMap<>();
     }
 
-    // Static factory method for safe loading
+    /**
+     * Static factory method to safely load the metastore.
+     */
     public static Metastore load() throws IOException {
-        Metastore instance = new Metastore();
+        Path dataDir = Path.of("data");
+        Files.createDirectories(dataDir);
+        Path runtimeFile = dataDir.resolve(JSON_NAME);
 
-        // Load JSON if it exists, else create it
-        if (!Files.exists(instance.runtimeFile)) {
-            try (InputStream is = instance.getClass().getClassLoader().getResourceAsStream(JSON_NAME)) {
+        // If file doesn't exist, try copying resource or create empty JSON
+        if (!Files.exists(runtimeFile)) {
+            try (InputStream is = Metastore.class.getClassLoader().getResourceAsStream(JSON_NAME)) {
                 if (is != null) {
-                    Files.copy(is, instance.runtimeFile, StandardCopyOption.REPLACE_EXISTING);
+                    Files.copy(is, runtimeFile, StandardCopyOption.REPLACE_EXISTING);
                 } else {
-                    // Resource not found: create empty JSON
-                    mapper.writeValue(instance.runtimeFile.toFile(), instance);
-                    return instance;
+                    Metastore empty = new Metastore();
+                    mapper.writeValue(runtimeFile.toFile(), empty);
                 }
             }
         }
 
-        // Load JSON
-        Metastore loaded = mapper.readValue(instance.runtimeFile.toFile(), Metastore.class);
+        // Read the JSON
+        Metastore loaded = mapper.readValue(runtimeFile.toFile(), Metastore.class);
 
-        // Copy deserialized fields
-        instance.tableSchemaMap = loaded.tableSchemaMap;
-        instance.tableUuids = loaded.tableUuids;
-        instance.tableFilesMap = loaded.tableFilesMap;
-
-        // Rebuild runtime-only maps
-        for (String uuid : instance.tableUuids) {
-            instance.tableFilesManagersMap.put(
+        // Initialize transient/runtime-only maps
+        loaded.tableFilesManagersMap = new ConcurrentHashMap<>();
+        loaded.nameToUuidMap = new ConcurrentHashMap<>();
+        for (String uuid : loaded.tableUuids) {
+            loaded.tableFilesManagersMap.put(
                     uuid,
-                    new TableFilesManager(instance.tableFilesMap.get(uuid), instance.tableSchemaMap.get(uuid))
+                    new TableFilesManager(
+                            loaded.tableFilesMap.get(uuid),
+                            loaded.tableSchemaMap.get(uuid))
+            );
+            loaded.nameToUuidMap.put(
+                    loaded.tableSchemaMap.get(uuid).getName(),
+                    uuid
             );
         }
 
-        loaded.tableSchemaMap.forEach((uuid, schema) -> instance.nameToUuidMap.put(schema.getName(), uuid));
+        loaded.runtimeFile = runtimeFile;
 
-        return instance;
+        return loaded;
     }
 
+    @JsonIgnore
     public List<ShallowTable> getShallowTables() {
         List<ShallowTable> list = new ArrayList<ShallowTable>();
         tableSchemaMap.forEach((uuid, schema) ->
@@ -80,38 +93,25 @@ public class Metastore implements AutoCloseable {
                 );
         return list;
     }
-
+    @JsonIgnore
     public TableSchema getTableById(String uuid) {
         return tableSchemaMap.get(uuid);
     }
 
-    private void deleteTableQuery(JsonNode args, List<String> fileNames, TableSchema schema) {
-        Path dataDir = Path.of("data");
-        for (String fileName: fileNames) {
-            Path filePath = dataDir.resolve(fileName);
-            try {
-                Files.deleteIfExists(filePath);
-            } catch (IOException e) {
-                System.err.println("Failed to delete: " + filePath + ", error: " + e.getMessage());
-            }
-        }
-    }
+
 
     public boolean deleteTable(String uuid) {
         TableSchema table = tableSchemaMap.get(uuid);
         if (table == null) return false;
         else {
-            tableFilesManagersMap.get(uuid).writeQuery(
-                    (args, files, schema) -> {
-                        deleteTableQuery(args, files, schema);
-                        return null; // TriFunction must return something
-                    },
-                    null
-            );
+            TableFilesManager filesManager = tableFilesManagersMap.get(uuid);
+            List<String> fileNames = tableFilesMap.get(uuid);
+            Thread deleteTableThread = new Thread(new DeleteTableQueryTask(fileNames, filesManager));
+            deleteTableThread.start();
 
-            tableFilesMap.remove(uuid);
             tableSchemaMap.remove(uuid);
             tableUuids.remove(uuid);
+            tableFilesMap.remove(uuid);
             tableFilesManagersMap.remove(uuid);
             nameToUuidMap.remove(table.getName());
             return true;
@@ -122,16 +122,21 @@ public class Metastore implements AutoCloseable {
     public List<MultipleProblemsError.Problem> validateTablePut(JsonNode tableJson) {
         List<MultipleProblemsError.Problem> problems = new ArrayList<>();
 
-        String tableName = tableJson.get("name").asText();
-        for (TableSchema table: tableSchemaMap.values()) {
-            if (table.getName().equals(tableName)) {
-                problems.add(new MultipleProblemsError.Problem("Table with this name already exists", tableName));
+        JsonNode nameNode =  tableJson.get("name");
+        if (nameNode != null && !nameNode.isNull()) {
+            String tableName = tableJson.get("name").asText();
+            for (TableSchema table: tableSchemaMap.values()) {
+                if (table.getName().equals(tableName)) {
+                    problems.add(new MultipleProblemsError.Problem("Table with this name already exists", tableName));
+                }
             }
+        } else {
+            problems.add(new MultipleProblemsError.Problem("Specify table name", null));
         }
 
         JsonNode columnsNode = tableJson.get("columns");
 
-        if (columnsNode.isArray()) {
+        if (columnsNode != null && !columnsNode.isNull() && columnsNode.isArray()) {
             for (int i = 0; i < columnsNode.size(); i++) {
                 JsonNode columnNode = columnsNode.get(i);
                 String name = columnNode.path("name").asText(null);
@@ -164,25 +169,41 @@ public class Metastore implements AutoCloseable {
         nameToUuidMap.put(newTable.getName(), newUuid);
         return newUuid;
     }
-
+    @JsonIgnore
     public String getTableUuid(String tableName) {
         return nameToUuidMap.get(tableName);
     }
-
+    @JsonIgnore
     public Set<String> getTableColumnNames(String tableName) {
         Set<String> tableColumnNames = new HashSet<>();
-        tableSchemaMap.get(tableName).getColumns().forEach(column -> {
+        String tableUuid = getTableUuid(tableName);
+        tableSchemaMap.get(tableUuid).getColumns().forEach(column -> {
             tableColumnNames.add(column.getName());
         });
         return tableColumnNames;
     }
-
-    private void save() throws IOException {
-        mapper.writeValue(runtimeFile.toFile(), this);
+    @JsonIgnore
+    public TableFilesManager getTableFileManager(String uuid) {
+        return tableFilesManagersMap.get(uuid);
     }
 
     @Override
     public void close() throws IOException {
-        save();
+        System.out.println("Im in closing!");
+        mapper.enable(SerializationFeature.INDENT_OUTPUT);
+        Files.deleteIfExists(runtimeFile);
+        mapper.writeValue(runtimeFile.toFile(), this);
+    }
+
+    public Set<String> getTableUuids() {
+        return tableUuids;
+    }
+
+    public ConcurrentHashMap<String, TableSchema> getTableSchemaMap() {
+        return tableSchemaMap;
+    }
+
+    public ConcurrentHashMap<String, List<String>> getTableFilesMap() {
+        return tableFilesMap;
     }
 }

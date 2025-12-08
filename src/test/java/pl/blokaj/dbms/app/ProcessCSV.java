@@ -1,6 +1,5 @@
 package pl.blokaj.dbms.app;
 
-import pl.blokaj.dbms.fileformat.deserializer.FileDeserializer;
 import pl.blokaj.dbms.fileformat.serializer.FileSerializer;
 import pl.blokaj.dbms.tablepage.TablePage;
 import pl.blokaj.dbms.columntype.Int64ColumnPage;

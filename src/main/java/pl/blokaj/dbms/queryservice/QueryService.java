@@ -1,11 +1,12 @@
 package pl.blokaj.dbms.queryservice;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import pl.blokaj.dbms.filesystem.TableFilesManager;
 import pl.blokaj.dbms.metastore.Metastore;
-import pl.blokaj.dbms.model.error.Error;
 import pl.blokaj.dbms.model.error.MultipleProblemsError;
 import pl.blokaj.dbms.model.query.*;
-import pl.blokaj.dbms.model.table.ColumnBase;
+import pl.blokaj.dbms.querytasks.CopyQueryTask;
+import pl.blokaj.dbms.querytasks.SelectQueryTask;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -46,6 +47,16 @@ public class QueryService {
         String newUuid = UUID.randomUUID().toString();
         Query newQuery = new Query(newUuid, QueryStatus.CREATED, false, queryDefinition);
         queries.put(newUuid, newQuery);
+
+        Thread queryThread = null;
+        String tableUuid = metastore.getTableUuid(queryDefinition.getTableName());
+        TableFilesManager manager = metastore.getTableFileManager(tableUuid);
+        switch (queryDefinition.getQueryType()) {
+            case COPY -> queryThread = new Thread(new CopyQueryTask(newQuery, this, manager));
+            case SELECT -> queryThread = new Thread(new SelectQueryTask(newQuery, this, manager));
+        }
+        if (queryThread != null) queryThread.start();
+
         return newUuid;
     }
 
@@ -65,5 +76,18 @@ public class QueryService {
 
     public MultipleProblemsError getQueryError(String uuid) {
         return errors.get(uuid);
+    }
+
+    public void submitQueryError(MultipleProblemsError error, Query query) {
+        String uuid = query.getQueryId();
+        query.setStatus(QueryStatus.FAILED);
+        errors.put(uuid, error);
+    }
+
+    public void submitQueryResult(QueryResult result, Query query) {
+        String uuid = query.getQueryId();
+        query.setStatus(QueryStatus.COMPLETED);
+        query.setResultAvailable(true);
+        results.put(uuid, result);
     }
 }

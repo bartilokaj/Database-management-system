@@ -1,11 +1,11 @@
-## Running project
-Project is done in java 25, but any sdk22+ should work as well.
-### Intelij
-Intelij should detect the maven file and allow to run without issues with 
-`mvn clean compile exec:java`.
-Alternatively, you can navigate to run->edit-configurations and in Main (you may need to run it once and fail to see
-it there), select modify-options->Vm-options, and add
-`--enable-preview --add-modules jdk.incubator.vector`
-### Without Intelij
-You need to have installed java 22+ and have it set as JAVA_HOME environmental variable. Also you need to install [maven](https://maven.apache.org/install.html).
-Then again, `mvn clean compile exec:java` should work.
+## Running Project
+Requires maven, docker and java 21+. If you encounter problems with enable-preview
+features, you can try to set target in maven-compiler-plugin to your SDK version.
+## Makefile
+Makefile has target docker, which creates an image, also has target docker-run
+with container creation, which binds server to port 7000 and binds the data directory
+from the root to the corresponding docker directory, so that container has preserved metastore state.
+## Tests
+Tests are written, however I do not vouch that they will work. I primarely used Intelij on windows,
+and during development I adjusted pom.xml to my environment. To run use `mvn clean compile test
+`

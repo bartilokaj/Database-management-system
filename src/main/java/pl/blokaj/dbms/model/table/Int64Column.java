@@ -2,7 +2,10 @@ package pl.blokaj.dbms.model.table;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.annotation.Nonnull;
+import pl.blokaj.dbms.columntype.ColumnPage;
+import pl.blokaj.dbms.columntype.Int64ColumnPage;
 
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -23,6 +26,12 @@ public class Int64Column implements ColumnBase {
     @Override
     public ColumnBase sliceColumn(int limit) {
         return new Int64Column(values.subList(0, limit));
+    }
+
+    @Override
+    public void addNextPage(ColumnPage columnPage) {
+        Int64ColumnPage col = (Int64ColumnPage) columnPage;
+        values.addAll(Arrays.stream(col.getData()).boxed().toList());
     }
 
     // Getter and Setter

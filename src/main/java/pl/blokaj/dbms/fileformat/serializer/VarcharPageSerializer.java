@@ -4,6 +4,7 @@ import pl.blokaj.dbms.columntype.VarcharColumnPage;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import static pl.blokaj.dbms.fileformat.encoding.VLQ.encodeSingleVLQ;
 
